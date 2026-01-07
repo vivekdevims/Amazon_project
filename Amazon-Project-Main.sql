@@ -1,132 +1,169 @@
 -- Amazon
 -- Creating database
-create database amazon;
+create database amazon_project;
 
 -- Using database
-use amazon;
+use amazon_project;
 
--- Creating tables
+CREATE DATABASE AMAZON_PROJECT;
+USE AMAZON_PROJECT;
 
--- Category table
-create table category(
-category_id int primary key,
-category_name varchar(30)
-);
-select * from category;
-describe category;
 
--- Customer table
-create table customer(
-customer_id int primary key,
-first_name varchar(20),
-last_name varchar(20),
-state varchar(20)
-);
-select * from customer;
-describe customer;
+-- customer
+select * from customers;
 
--- Seller table
-create table seller(
-seller_id int primary key,
-seller_name varchar(20),
-origin varchar(20)
-);
-select * from seller;
-describe seller;
+-- rename column name
+ALTER TABLE customers
+RENAME COLUMN Customer_id TO customer_id;
 
--- product table
--- I have directly imported the product table
-describe product;
--- Now let's add primary key
-alter table product 
-add constraint pk_product primary key (product_id);
--- Now let's add foreign key
-alter table product 
-add constraint fk_product foreign key (category_id) references category(category_id);
--- Added
-select * from product;
+-- check duplicate values
+SELECT customer_id, COUNT(*)
+FROM customers
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
 
--- inventory 
-describe inventory;
--- the inventory id column name needs to be changed
-alter table inventory
-rename column ï»¿inventory_id to inventory_id;
--- Let's add primary key
-alter table inventory
-add primary key (inventory_id);
--- Let's add foreign key  
-alter table inventory
-add constraint fk_product_id foreign key (product_id) references product(product_id);
--- Added
+-- ASSIGN PRIMARY KEY
+ALTER TABLE customers
+add constraint pk_customers
+primary key (Customer_id);
+
+-- CATEGORY TABLE
+SELECT * FROM CATEGORY;
+
+-- RENAME COLUMN
+ALTER TABLE category
+RENAME COLUMN Category_id TO category_id;
+
+-- ASSIGN KEY
+ALTER TABLE category
+add constraint pk_category
+primary key (Category_id);
+
+-- 
+SET SQL_SAFE_UPDATES = 0;
+UPDATE category
+SET category_name =  CONCAT(
+        UPPER(SUBSTRING(category_name, 1, 1)),
+        LOWER(SUBSTRING(category_name, 2))
+    );
+SET SQL_SAFE_UPDATES = 1;
+
+-- SELLERS TABLE
+SELECT * FROM SELLERS;
+
+-- RENAME SELLERS
+ALTER TABLE SELLERS
+RENAME COLUMN ï»¿seller_id TO seller_id;
+
+-- ASSIGN KEY
+ALTER TABLE sellers
+add constraint pk_sellers
+primary key (seller_id);
+
+-- PRODUCTS TABLE
+SELECT * FROM products;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER TABLE products
+ADD CONSTRAINT pk_products
+primary key (product_id);
+
+ALTER TABLE products
+ADD CONSTRAINT fk_products_category
+FOREIGN KEY (category_id) REFERENCES category(category_id);
+
+-- ORDERS
+SELECT * FROM orders;
+
+-- RENAME COLUMN
+ALTER TABLE orders
+RENAME COLUMN ï»¿order_id to order_id;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER TABLE orders
+ADD CONSTRAINT pk_orders
+PRIMARY KEY (order_id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customer
+FOREIGN KEY(customer_id) REFERENCES customers(customer_id);
+
+-- ORDER_ITEMS
+SELECT * FROM order_items;
+
+-- RENAME COLUMNS
+ALTER TABLE order_items
+RENAME COLUMN ï»¿order_item_id to order_item_id;
+
+-- ASSIGN PRIMARY KEY 
+ALTER TABLE order_items
+ADD CONSTRAINT pk_order_items
+PRIMARY KEY (order_item_id);
+
+-- ASSIGN FOREIGN KEY
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_item
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_item_product
+FOREIGN KEY (product_id) REFERENCES products(product_id);
+
+-- ADD NEW COLUMN
+ALTER table order_items
+ADD column total_sale float;
+SET SQL_SAFE_UPDATES = 0;
+UPDATE order_items
+SET total_sale= quantity * price_per_unit;
+SET SQL_SAFE_UPDATES = 1;
+-- PAYMENTS TABLE
+SELECT * FROM payments;
+
+-- RENAME COLUMN
+ALTER TABLE PAYMENTS
+RENAME COLUMN ï»¿payment_id to payment_id;
+
+-- ASSIGN KEY 
+ALTER TABLE payments
+ADD CONSTRAINT PK_PAYMENT_ID
+PRIMARY KEY (payment_id);
+
+-- ASSIGN FOREIGN KEY
+ALTER TABLE payments
+ADD CONSTRAINT FK_PAYMENTS_ORDER
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+-- SHIPPING TABLE
+SELECT * FROM SHIPPING;
+-- RENAME COLUMN
+ALTER TABLE SHIPPING
+RENAME COLUMN ï»¿shipping_id TO shipping_id;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER table shipping
+ADD CONSTRAINT pk_shipping
+PRIMARY KEY (shipping_id);
+
+ALTER table shipping
+ADD CONSTRAINT fk_shipping_order
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+-- inventory table
 select * from inventory;
 
--- orders
-create table orders(
-order_id int primary key,
-order_date date,
-customer_id int,
-seller_id int,
-order_status varchar(20),
-foreign key (customer_id) references customer(customer_id),
-foreign key (seller_id) references seller(seller_id)
-);
-select * from orders;
+-- RENAME COLUMN
+ALTER TABLE inventory
+RENAME COLUMN ï»¿inventory_id TO inventory_id;
 
--- payment
-create table payment(
-payment_id int primary key,
-order_id int,
-payment_date date,	
-payment_status varchar(20),
-foreign key (order_id) references orders(order_id)
-);
-select * from payment;
+-- ASSIGN PRIMARY KEY
+ALTER TABLE inventory
+add constraint pk_inventory
+primary key (inventory_id);
 
--- shipping
--- I have directly imported the csv file without creating table
--- Let's do few modifications
--- Checking the data types, column names and null values
-describe shipping ;
-select * from shipping;
--- Adding primary key
-alter table shipping
-add primary key (shipping_id);
--- changing column data type
-alter table shipping
-modify shipping_date date;
--- handling blank values and converting into NULL
-update shipping
-set return_date = NULL
-where return_date = '';
--- Changing column data type
-alter table shipping
-modify return_date date;
--- Changing column name
-alter table shipping
-rename column `shipping providers` to shipping_providers;
--- Adding foreign key
-alter table shipping
-add foreign key (order_id) references orders(order_id);
-
--- order_items
--- I have directly imported the csv file without creating table
-describe order_item;
--- Let's do few modifications
--- Checking the data types, column names and null values
--- Changing column name
-alter table order_item
-rename column ï»¿order_item_id to order_item_id;
--- Adding primary key
-alter table order_item
-add constraint pk_order_item primary key (order_item_id);
--- Adding foreign key 1
-alter table order_item
-add constraint fk1_product foreign key (product_id) references product(product_id);
--- Adding foreign key 2
-alter table order_item
-add constraint fk2_orders foreign key (order_id) references orders(order_id);
--- Added
-select * from order_item;
+-- ASSIGN FOREIGN KEY
+ALTER TABLE inventory
+ADD CONSTRAINT fk_inventory_product
+foreign key(product_id) references products(product_id);
 
 -- DATA IMPORTED --
 
@@ -319,3 +356,21 @@ group by
 order by 
     total_returned desc
 limit 10;
+-- EXTRA
+-- Identified the highest-demand product in each state based on total quantity sold, enabling better understanding of customer preferences.
+WITH product_demand AS (
+SELECT c.state, p.product_name,
+SUM(oi.quantity) AS total_quantity,
+DENSE_RANK() OVER ( PARTITION BY c.state ORDER BY SUM(oi.quantity)  DESC ) AS rnk
+FROM orders o
+JOIN order_items oi ON o.order_id = oi.order_id
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN products p ON oi.product_id = p.product_id
+WHERE o.order_status = 'Completed'
+GROUP BY c.state, p.product_name
+)
+SELECT state, product_name AS highest_demand_product,
+total_quantity
+FROM product_demand
+WHERE rnk = 1
+ORDER BY state;
