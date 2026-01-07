@@ -38,92 +38,165 @@ Seller Contributions: Understanding which sellers generate the most revenue can 
 
 ## *Schema Structure*
 ```sql
-CREATE TABLE category
-(
-  category_id	INT PRIMARY KEY,
-  category_name VARCHAR(20)
-);
+CREATE DATABASE AMAZON_PROJECT;
+USE AMAZON_PROJECT;
 
--- customers TABLE
-CREATE TABLE customers
-(
-  customer_id INT PRIMARY KEY,	
-  first_name	VARCHAR(20),
-  last_name	VARCHAR(20),
-  state VARCHAR(20)
-);
 
--- sellers TABLE
-CREATE TABLE sellers
-(
-  seller_id INT PRIMARY KEY,
-  seller_name	VARCHAR(25),
-  origin VARCHAR(15)
-);
+-- customer
+select * from customers;
 
--- products table
-  CREATE TABLE products
-  (
-  product_id INT PRIMARY KEY,	
-  product_name VARCHAR(50),	
-  price	FLOAT,
-  cogs	FLOAT,
-  category_id INT, -- FK 
-  CONSTRAINT product_fk_category FOREIGN KEY(category_id) REFERENCES category(category_id)
-);
+-- rename column name
+ALTER TABLE customers
+RENAME COLUMN Customer_id TO customer_id;
 
--- orders
-CREATE TABLE orders
-(
-  order_id INT PRIMARY KEY, 	
-  order_date	DATE,
-  customer_id	INT, -- FK
-  seller_id INT, -- FK 
-  order_status VARCHAR(15),
-  CONSTRAINT orders_fk_customers FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
-  CONSTRAINT orders_fk_sellers FOREIGN KEY (seller_id) REFERENCES sellers(seller_id)
-);
+-- check duplicate values
+SELECT customer_id, COUNT(*)
+FROM customers
+GROUP BY customer_id
+HAVING COUNT(*) > 1;
 
-CREATE TABLE order_items
-(
-  order_item_id INT PRIMARY KEY,
-  order_id INT,	-- FK 
-  product_id INT, -- FK
-  quantity INT,	
-  price_per_unit FLOAT,
-  CONSTRAINT order_items_fk_orders FOREIGN KEY (order_id) REFERENCES orders(order_id),
-  CONSTRAINT order_items_fk_products FOREIGN KEY (product_id) REFERENCES products(product_id)
-);
+-- ASSIGN PRIMARY KEY
+ALTER TABLE customers
+add constraint pk_customers
+primary key (Customer_id);
 
--- payment TABLE
-CREATE TABLE payments
-(
-  payment_id	
-  INT PRIMARY KEY,
-  order_id INT, -- FK 	
-  payment_date DATE,
-  payment_status VARCHAR(20),
-  CONSTRAINT payments_fk_orders FOREIGN KEY (order_id) REFERENCES orders(order_id)
-);
+-- CATEGORY TABLE
+SELECT * FROM CATEGORY;
 
-CREATE TABLE shippings
-(
-  shipping_id	INT PRIMARY KEY,
-  order_id	INT, -- FK
-  shipping_date DATE,	
-  return_date	 DATE,
-  shipping_providers	VARCHAR(15),
-  delivery_status VARCHAR(15),
-  CONSTRAINT shippings_fk_orders FOREIGN KEY (order_id) REFERENCES orders(order_id)
-);
+-- RENAME COLUMN
+ALTER TABLE category
+RENAME COLUMN Category_id TO category_id;
 
-CREATE TABLE inventory
-(
-  inventory_id INT PRIMARY KEY,
-  product_id INT, -- FK
-  stock INT,
-  warehouse_id INT,
-  last_stock_date DATE,
-  CONSTRAINT inventory_fk_products FOREIGN KEY (product_id) REFERENCES products(product_id)
+-- ASSIGN KEY
+ALTER TABLE category
+add constraint pk_category
+primary key (Category_id);
+
+-- 
+SET SQL_SAFE_UPDATES = 0;
+UPDATE category
+SET category_name =  CONCAT(
+        UPPER(SUBSTRING(category_name, 1, 1)),
+        LOWER(SUBSTRING(category_name, 2))
+    );
+SET SQL_SAFE_UPDATES = 1;
+
+-- SELLERS TABLE
+SELECT * FROM SELLERS;
+
+-- RENAME SELLERS
+ALTER TABLE SELLERS
+RENAME COLUMN ï»¿seller_id TO seller_id;
+
+-- ASSIGN KEY
+ALTER TABLE sellers
+add constraint pk_sellers
+primary key (seller_id);
+
+-- PRODUCTS TABLE
+SELECT * FROM products;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER TABLE products
+ADD CONSTRAINT pk_products
+primary key (product_id);
+
+ALTER TABLE products
+ADD CONSTRAINT fk_products_category
+FOREIGN KEY (category_id) REFERENCES category(category_id);
+
+-- ORDERS
+SELECT * FROM orders;
+
+-- RENAME COLUMN
+ALTER TABLE orders
+RENAME COLUMN ï»¿order_id to order_id;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER TABLE orders
+ADD CONSTRAINT pk_orders
+PRIMARY KEY (order_id);
+
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customer
+FOREIGN KEY(customer_id) REFERENCES customers(customer_id);
+
+-- ORDER_ITEMS
+SELECT * FROM order_items;
+
+-- RENAME COLUMNS
+ALTER TABLE order_items
+RENAME COLUMN ï»¿order_item_id to order_item_id;
+
+-- ASSIGN PRIMARY KEY 
+ALTER TABLE order_items
+ADD CONSTRAINT pk_order_items
+PRIMARY KEY (order_item_id);
+
+-- ASSIGN FOREIGN KEY
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_item
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+ALTER TABLE order_items
+ADD CONSTRAINT fk_order_item_product
+FOREIGN KEY (product_id) REFERENCES products(product_id);
+
+-- ADD NEW COLUMN
+ALTER table order_items
+ADD column total_sale float;
+SET SQL_SAFE_UPDATES = 0;
+UPDATE order_items
+SET total_sale= quantity * price_per_unit;
+SET SQL_SAFE_UPDATES = 1;
+-- PAYMENTS TABLE
+SELECT * FROM payments;
+
+-- RENAME COLUMN
+ALTER TABLE PAYMENTS
+RENAME COLUMN ï»¿payment_id to payment_id;
+
+-- ASSIGN KEY 
+ALTER TABLE payments
+ADD CONSTRAINT PK_PAYMENT_ID
+PRIMARY KEY (payment_id);
+
+-- ASSIGN FOREIGN KEY
+ALTER TABLE payments
+ADD CONSTRAINT FK_PAYMENTS_ORDER
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+-- SHIPPING TABLE
+SELECT * FROM SHIPPING;
+-- RENAME COLUMN
+ALTER TABLE SHIPPING
+RENAME COLUMN ï»¿shipping_id TO shipping_id;
+
+-- ASSIGN PRIMARY KEY AND FOREIGN KEY
+ALTER table shipping
+ADD CONSTRAINT pk_shipping
+PRIMARY KEY (shipping_id);
+
+ALTER table shipping
+ADD CONSTRAINT fk_shipping_order
+FOREIGN KEY (order_id) REFERENCES orders(order_id);
+
+-- inventory table
+select * from inventory;
+
+-- RENAME COLUMN
+ALTER TABLE inventory
+RENAME COLUMN ï»¿inventory_id TO inventory_id;
+
+-- ASSIGN PRIMARY KEY
+ALTER TABLE inventory
+add constraint pk_inventory
+primary key (inventory_id);
+
+-- ASSIGN FOREIGN KEY
+ALTER TABLE inventory
+ADD CONSTRAINT fk_inventory_product
+foreign key(product_id) references products(product_id);
+
   );
 ```
